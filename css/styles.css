@@ -13,7 +13,7 @@ body {
 }
 
 .main-header .logo {
-  max-height: 10rem; 
+  max-height: 100%; 
 }
 
 .main-header button {
@@ -85,30 +85,21 @@ body {
 }
 
 .bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background: #eee1f5;
-  display: flex;
-  justify-content: space-around;
-  padding: 0.5rem 0;
-  box-shadow: 0 -1px 3px rgba(0,0,0,0.1);
+  position:fixed; bottom:0; left:0; width:100%;
+  background:#eee1f5; display:flex; justify-content:space-around;
+  padding: .45rem 0; box-shadow:0 -1px 3px rgba(0,0,0,.08);
 }
 
 .bottom-nav .nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-decoration: none;
-  color: #333;
-  font-size: 0.9rem;
+display:flex; flex-direction:column; align-items:center; gap:.15rem;
+  text-decoration:none; color:#333; font-size:.85rem;
 }
 
 .bottom-nav .nav-icon {
   font-size: 1.4rem;
 }
-
+.nav-item .nav-icon{display:block}
+.nav-item.active{color:#7b4bb7; font-weight:600}
 .tabs {
   display: flex;
   justify-content: space-around;
@@ -170,5 +161,109 @@ main {
   padding-bottom: 4rem;
 }
 
+/* --- PROFILE DROPDOWN --- */
+.profile-menu{
+  position: absolute;
+  top: 60px; /* coincide con la altura del header */
+  right: 12px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.12);
+  padding: .25rem;
+  display: flex;
+  flex-direction: column;
+  z-index: 20;
+}
+.profile-menu button{
+  background: none;
+  border: 0;
+  text-align: left;
+  padding: .6rem .9rem;
+  font-size: .95rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.profile-menu button:hover{ background:#f4f4f6; }
+
+/* --- MODAL --- */
+.modal[hidden] { display: none; }
+.modal{
+  position: fixed; inset: 0; z-index: 9999; /* muy por encima del mapa */
+  display: grid; place-items: center;
+  -webkit-overflow-scrolling: touch;
+}
+.modal-backdrop{
+  position: absolute; inset: 0; background: rgba(0,0,0,.45);
+  z-index: 9998; /* debajo de la tarjeta pero sobre el mapa */
+  pointer-events: auto;
+}
+.modal-card{
+  position: relative; z-index: 10000; /* encima del backdrop */
+  width: 100%; max-width: 420px;
+  background: #fff;
+  border-radius: 18px;
+  padding: 1.2rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,.22);
+}
+.modal-card .modal-close{ position: absolute; right: 12px; top: 12px; background: transparent; border: 0; font-size: 1.05rem; cursor: pointer; }
+.modal-card .modal-close[aria-label]{ padding: .25rem .5rem; }
+.modal-card { max-height: 86vh; overflow: auto; }
+.modal-card h2{ margin: 0 0 .8rem; }
+.modal-card form{ display: grid; gap: .75rem; }
+.modal-card input{
+  width: 100%;
+  padding: .65rem .8rem;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  font-size: 1rem;
+}
+
+/* --- AUTH TABS (side-by-side on larger screens) --- */
+.auth-tabs{ display:flex; gap:.5rem; margin-bottom:.8rem; }
+.auth-tabs .tab{ flex:1; padding:.55rem .6rem; border-radius:10px; background:#f5f0fa; border:1px solid transparent; cursor:pointer; }
+.auth-tabs .tab.active{ background:#7b4bb7; color:#fff; border-color: rgba(0,0,0,.05); }
+.auth-form{ margin:0; }
+
+/* show forms side-by-side on wide screens */
+.auth-forms-row{ display:block; gap:0; }
+/* Side-by-side by default, stack on small screens */
+.auth-forms-row{ display:flex; gap:1rem; }
+@media (max-width:520px){
+  .modal-card{ width: calc(100vw - 2rem); border-radius: 14px; }
+  .auth-forms-row{ display:block; }
+}
+.auth-forms-row form{ flex:1; min-width: 0; }
+
+/* visually de-emphasize inactive form */
+.auth-forms-row form{ opacity: .95; transform-origin: left top; }
+.auth-forms-row form.inactive{ opacity: .55; }
+
+/* add small divider on wide screens */
+.auth-forms-row::before{ content:''; display:block; }
+
+/* hide form when hidden attribute is set (don't take space) */
+.auth-forms-row form[hidden]{ display: none !important; }
+
+/* auth message */
+.auth-message{ background:#fff4e5; border:1px solid #ffd8a8; padding:.6rem .8rem; border-radius:8px; margin-bottom:.6rem; color:#663c00; }
+
+/* Toast */
+.toast{ position: fixed; right: 1rem; bottom: 4.5rem; background: #222; color: #fff; padding: .6rem .9rem; border-radius: 8px; box-shadow: 0 8px 20px rgba(0,0,0,.25); z-index:11000; }
+.toast[hidden]{ display:none }
+
+/* prevent body scroll when modal open */
+body.modal-open{ overflow: hidden; }
+.modal-card .primary{
+  background: #7b4bb7; color: #fff; border: 0;
+  padding: .7rem 1rem; border-radius: 10px; cursor: pointer;
+  font-weight: 600;
+}
+.modal-card .ghost{
+  background: transparent; border: 0; color: #555;
+  padding: .6rem .8rem; border-radius: 10px; cursor: pointer;
+}
+
+/* Asegura jerarquía del header si hay mapa full */
+.main-header { position: relative; z-index: 10; }
 
 
