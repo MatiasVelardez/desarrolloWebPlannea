@@ -3,6 +3,48 @@ body {
   font-family: sans-serif;
 }
 
+/* Theme variables */
+:root{
+  --bg: #ffffff;
+  --surface: #fff;
+  --muted: #555;
+  --primary: #7b4bb7;
+  --header-bg: #eee1f5;
+  --text: #111;
+}
+.theme-dark{
+  --bg: #0f1012;
+  --surface: #101214;
+  --muted: #bdbdbd;
+  --primary: #b589f7;
+  --header-bg: #2a2630;
+  --text: #eee;
+}
+
+body{ background: var(--bg); color: var(--text); }
+.modal-card, .settings-section, .event-card, .notification-card{ background: var(--surface); }
+.main-header{ background-color: var(--header-bg); }
+.toast{ background: rgba(0,0,0,.85); }
+.nav-item{ color: var(--text); }
+
+/* Ensure readable text and controls */
+.logo{ filter: none; }
+button, input, select, textarea{ color: var(--text); }
+label{ color: var(--muted); }
+.event-details, .auth-forms-row, .modal-card h2{ color: var(--text); }
+.nav-item .nav-text{ color: var(--text); }
+.modal-backdrop{ background: rgba(0,0,0,.45); }
+input, select{ background: var(--surface); border: 1px solid rgba(0,0,0,.06); }
+.theme-dark input, .theme-dark select{ border-color: rgba(255,255,255,0.06); }
+.primary{ background: var(--primary); color: #fff }
+.ghost{ color: var(--text); }
+
+/* Smooth transitions for theme changes */
+html, body, .modal-card, .settings-section, .event-card, .notification-card, .main-header, .bottom-nav {
+  transition: background-color 250ms ease, color 250ms ease, border-color 250ms ease;
+}
+.primary, .ghost, .buy-button { transition: background-color 180ms ease, color 180ms ease, transform 140ms ease; }
+
 .main-header {
   display: flex;
   justify-content: space-between;
@@ -11,6 +53,19 @@ body {
   padding: 0 1rem; 
   background-color: #eee1f5;
 }
+
+/* tiny adjustment for settings header back link */
+.main-header .logo-link{ color: #333; text-decoration: none; font-weight:600 }
+
+/* Settings page */
+.settings-section{ background: #fff; padding:1rem; border-radius:10px; margin-bottom:1rem; box-shadow: 0 4px 18px rgba(0,0,0,.06)}
+.setting-row{ display:flex; gap:.6rem; align-items:center; margin-top:.6rem }
+.settings-section h2{ margin:0 0 .3rem; color:#333 }
+.setting-row input[type="text"], .setting-row select{ padding:.6rem .75rem; border-radius:8px; border:1px solid #e6dbf5; background:#fbf8fc }
+.settings-section p{ color:#555; margin:0 }
+
+/* small utility */
+.logo-link{ display:inline-block; padding:.3rem .5rem; border-radius:8px }
 
 .main-header .logo {
   max-height: 100%; 
@@ -58,6 +113,7 @@ body {
   width: 200px;
   height: 120px;
   object-fit: cover;
+  /* keep image flush with card edge */
 }
 
 .event-details {
@@ -68,6 +124,20 @@ body {
   padding: 0.5rem 1rem;
   max-width: 120px;
 }
+
+/* Make links inside event titles and event images look like normal content (no blue/purple default)
+   but keep them accessible: visible outline on keyboard focus. */
+.event-title a, .event-card a {
+  color: inherit;
+  text-decoration: none;
+}
+.event-title a:focus, .event-card a:focus {
+  outline: 3px solid rgba(123,75,183,0.18);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.event-card a:hover { text-decoration: underline; }
+
 
 .event-date {
   margin: 0 0 0.5rem 0;
@@ -160,6 +230,29 @@ display:flex; flex-direction:column; align-items:center; gap:.15rem;
 main {
   padding-bottom: 4rem;
 }
+
+/* Event detail styles */
+.event-hero {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  max-width: 1000px;
+  margin: 1rem auto;
+  padding: 1rem;
+}
+.event-hero .hero-image { width: 100%; height: 320px; object-fit: cover; border-radius: 12px; }
+.event-meta { display:flex; gap:1rem; align-items:center; margin-top: .6rem; color: var(--muted); }
+.event-title-big { margin: .4rem 0; font-size: 1.6rem; color: var(--text); }
+.event-actions { display:flex; gap:.6rem; margin-top:.8rem; }
+.btn-buy { background: var(--primary); color: #fff; border: none; padding:.65rem .9rem; border-radius: 8px; cursor:pointer; font-weight:700 }
+.btn-share { background: transparent; border: 1px solid rgba(0,0,0,0.06); padding:.6rem .9rem; border-radius:8px; cursor:pointer }
+.event-description { margin-top: .8rem; line-height:1.45; color: var(--muted); }
+.related-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: .8rem; margin-top:1rem }
+.related-card { background: var(--surface); border-radius: 8px; overflow: hidden; box-shadow: 0 6px 18px rgba(0,0,0,.06); }
+.related-card img{ width:100%; height:120px; object-fit:cover }
+.related-card .rc-body{ padding:.6rem }
+.related-card h4{ margin:0 0 .4rem 0; font-size:1rem }
+.related-card p{ margin:0; font-size:.85rem; color:var(--muted) }
 
 /* --- PROFILE DROPDOWN --- */
 .profile-menu{

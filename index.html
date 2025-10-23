@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="css/styles.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>    
+  <!-- Marker cluster styles -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
   <title>Plannea - Eventos</title>
 </head>
 
@@ -13,7 +16,7 @@
   <header class="main-header">
     <button id="btnUser" class="user-button" aria-label="Login or Profile">👤</button>
     <img src="images/PLANNEA.png" alt="Plannea Logo" class="logo" />
-    <button id="btnSettings" class="settings-button" aria-label="Settings" disabled aria-disabled="true">⚙️</button>
+  <button id="btnSettings" class="settings-button" aria-label="Settings">⚙️</button>
   </header>
 
   <!-- LOGIN / REGISTER MODAL -->
@@ -63,8 +66,34 @@
     </div>
   </div>
 
+  <!-- GEOLOCATION PERMISSION MODAL -->
+  <div id="geoModal" class="modal" hidden>
+    <div class="modal-backdrop" data-close="geo-modal"></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="geoTitle">
+      <button class="modal-close" data-close="geo-modal" aria-label="Cerrar">✕</button>
+      <h2 id="geoTitle">Permiso de ubicación necesario</h2>
+      <p>Se necesita el acceso a la ubicacion para el buen funcionamiento de la web. Por favor, reinicie la pagina</p>
+      <div style="display:flex; gap:.5rem; justify-content:flex-end; margin-top: .8rem;">
+        <button id="geoReloadBtn" class="primary">Reiniciar página</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast notifications -->
   <div id="toast" class="toast" hidden aria-live="polite"></div>
+
+  <!-- CONFIRMATION MODAL (reusable) -->
+  <div id="confirmModal" class="modal" hidden>
+    <div class="modal-backdrop" data-close="confirm-modal"></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <h2 id="confirmTitle">Confirmar</h2>
+      <p id="confirmMessage">¿Estás seguro?</p>
+      <div style="display:flex; gap:.5rem; justify-content:flex-end; margin-top:.8rem;">
+        <button id="confirmCancel" class="ghost">Cancelar</button>
+        <button id="confirmOk" class="primary">Confirmar</button>
+      </div>
+    </div>
+  </div>
 
   <!-- CONTENIDO -->
   <main>
@@ -98,6 +127,9 @@
 
   <!-- LIBRERÍAS -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster-src.js"></script>
+  <!-- Shared events data -->
+  <script src="js/events.js"></script>
 
   <!-- MAPA -->
   <script>
@@ -112,26 +144,73 @@
           attribution: 'Map data © OpenStreetMap contributors'
         }).addTo(map);
 
-        L.marker([lat, lng])
-          .addTo(map)
-          .bindPopup('Estás aquí')
-          .openPopup();
+        // marker cluster group
+        const markersGroup = L.markerClusterGroup();
 
-        const eventos = [
-          { nombre: 'Indie Fest', lat: lat + 0.01,  lng: lng + 0.01 },
-          { nombre: 'Cine al Aire Libre', lat: lat - 0.015, lng: lng + 0.005 },
-          { nombre: 'Feria del Libro', lat: lat + 0.008, lng: lng - 0.012 }
-        ];
+        // marker for user
+        const you = L.marker([lat, lng]).bindPopup('Estás aquí');
+        markersGroup.addLayer(you);
+
+        // Use shared events from js/events.js (window.planneaEvents)
+        const baseEvents = window.planneaEvents || [];
+        const eventos = baseEvents.map(ev => {
+          const off = ev.offset || [0,0];
+          return { nombre: ev.nombre, slug: ev.slug, lat: lat + (off[0] || 0), lng: lng + (off[1] || 0) };
+        });
 
         eventos.forEach(e => {
-          L.marker([e.lat, e.lng]).addTo(map).bindPopup(e.nombre);
+          const m = L.marker([e.lat, e.lng]);
+          const safeName = (e.nombre || '').replace(/'/g, "\\'");
+          const detailUrl = 'pages/event.html?slug=' + encodeURIComponent(e.slug || '');
+          m.bindPopup(`<strong>${e.nombre}</strong><br/><a href="${detailUrl}">Ver detalle</a><br/><button onclick="openPurchaseModal('${safeName}')">Comprar</button>`);
+          markersGroup.addLayer(m);
         });
+
+        map.addLayer(markersGroup);
       },
       function () {
-        alert('No se pudo obtener tu ubicación. Asegúrate de habilitarla.');
+        // Mostrar modal de permiso denegado en lugar de alert
+        const geoModal = document.getElementById('geoModal');
+        if(geoModal){
+          geoModal.hidden = false;
+          document.body.classList.add('modal-open');
+          // close handlers
+          const closeBtns = geoModal.querySelectorAll('[data-close="geo-modal"], .modal-close');
+          closeBtns.forEach(b => b.addEventListener('click', function(){ geoModal.hidden = true; document.body.classList.remove('modal-open'); }));
+          // backdrop click
+          geoModal.addEventListener('click', function(e){ if(e.target && e.target.dataset && e.target.dataset.close === 'geo-modal'){ geoModal.hidden = true; document.body.classList.remove('modal-open'); }});
+          // reload button
+          const reloadBtn = document.getElementById('geoReloadBtn');
+          reloadBtn?.addEventListener('click', function(){ location.reload(); });
+        }else{
+          alert('No se pudo obtener tu ubicación. Asegúrate de habilitarla.');
+        }
       }
     );
   </script>
+
+  <!-- PURCHASE MODAL -->
+  <div id="purchaseModal" class="modal" hidden>
+    <div class="modal-backdrop" data-close="purchase-modal"></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="purchaseTitle">
+      <button class="modal-close" data-close="purchase-modal" aria-label="Cerrar">✕</button>
+      <h2 id="purchaseTitle">Comprar entrada</h2>
+      <div style="display:grid; gap:.6rem;">
+        <div><strong id="purchaseEventName"></strong></div>
+        <label>Cantidad
+          <select id="purchaseQty"><option>1</option><option>2</option><option>3</option><option>4</option></select>
+        </label>
+        <label>Tu nombre
+          <input id="purchaseBuyer" type="text" placeholder="Nombre" />
+        </label>
+        <div id="purchaseTotal" style="font-weight:700; margin-top:.25rem">Total: -</div>
+        <div style="display:flex; gap:.5rem; justify-content:flex-end;">
+          <button id="purchaseCancel" class="ghost">Cancelar</button>
+          <button id="purchaseConfirm" class="primary">Confirmar compra</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- APP JS (login/menu perfil) -->
   <script src="js/app.js"></script>

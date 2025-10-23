@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <title>Configuración - Plannea</title>
+</head>
+<body>
+  <header class="main-header">
+    <a href="../index.html" class="user-button" aria-label="Volver a Inicio">←</a>
+    <img src="../images/PLANNEA.png" alt="Plannea Logo" class="logo" />
+    <div style="width:40px"></div>
+  </header>
+
+  <main style="padding:1rem; max-width:900px; margin:0 auto;">
+    <h1>Configuración</h1>
+
+    <section class="settings-section">
+      <h2>Perfil</h2>
+      <p>Actualizar información de la cuenta y nombre de usuario.</p>
+      <div class="setting-row">
+        <label>Nombre de usuario
+          <input type="text" id="setting-username" placeholder="Tu nombre" />
+        </label>
+          <button id="saveProfile" class="primary">Guardar</button>
+      </div>
+    </section>
+
+    <section class="settings-section">
+      <h2>Notificaciones</h2>
+      <p>Controla las notificaciones que recibes.</p>
+      <div class="setting-row">
+        <label><input type="checkbox" id="setting-notifications" checked /> Recibir notificaciones por correo</label>
+      </div>
+    </section>
+
+    <section class="settings-section">
+      <h2>Privacidad</h2>
+      <p>Administrar visibilidad y permisos.</p>
+      <div class="setting-row">
+        <label><input type="checkbox" id="setting-location" checked /> Permitir uso de ubicación</label>
+      </div>
+    </section>
+
+    
+
+    <section class="settings-section">
+      <h2>Seguridad</h2>
+      <p>Actualizar contraseña y sesiones activas.</p>
+      <div class="setting-row">
+  <button id="changePassword" class="ghost">Cambiar contraseña</button>
+      </div>
+    </section>
+
+    <section class="settings-section">
+      <h2>Cuenta</h2>
+      <p>Cerrar sesión o eliminar cuenta.</p>
+      <div class="setting-row">
+        <button id="logoutBtn" class="ghost">Cerrar sesión</button>
+        <button id="deleteAccount" class="ghost">Eliminar cuenta</button>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // Pequeños manejadores para UI básica y persistencia local
+    document.getElementById('saveProfile')?.addEventListener('click', function(){
+      const username = document.getElementById('setting-username').value;
+      if(!username){ (window.showToast||alert)('Ingrese un nombre de usuario'); return; }
+      const userRaw = localStorage.getItem('plannea_user');
+      const user = userRaw ? JSON.parse(userRaw) : {};
+      user.username = username;
+      localStorage.setItem('plannea_user', JSON.stringify(user));
+      (window.showToast||alert)('Perfil guardado');
+    });
+
+    document.getElementById('logoutBtn')?.addEventListener('click', function(){
+      localStorage.removeItem('plannea_user');
+      (window.showToast||alert)('Sesión cerrada');
+      location.href = '../index.html';
+    });
+
+    document.getElementById('deleteAccount')?.addEventListener('click', function(){
+      (window.showConfirm||window.confirm)('Confirma eliminar la cuenta y todos los datos locales?')
+        .then ? window.showConfirm('Confirma eliminar la cuenta y todos los datos locales?').then(ok => { if(ok){ localStorage.removeItem('plannea_user'); localStorage.removeItem('plannea_users'); (window.showToast||alert)('Cuenta eliminada'); location.href = '../index.html'; } }) : (function(){ if(confirm('Confirma eliminar la cuenta y todos los datos locales?')){ localStorage.removeItem('plannea_user'); localStorage.removeItem('plannea_users'); (window.showToast||alert)('Cuenta eliminada'); location.href = '../index.html'; } })();
+    });
+
+    // Cargar valores guardados
+    (function(){
+      const userRaw = localStorage.getItem('plannea_user');
+      if(userRaw){
+        const user = JSON.parse(userRaw);
+        document.getElementById('setting-username').value = user.username || '';
+      }
+      const notif = localStorage.getItem('plannea_notif');
+      if(notif !== null) document.getElementById('setting-notifications').checked = notif === '1';
+    })();
+
+    // Persistir notificaciones
+    document.getElementById('setting-notifications')?.addEventListener('change', function(e){
+      localStorage.setItem('plannea_notif', this.checked ? '1' : '0');
+    });
+
+    // La sección de Apariencia fue eliminada por el usuario; el tema sigue aplicándose globalmente si existe.
+  </script>
+  <script>
+    // Remove empty settings sections (fix visual empty boxes left after edits)
+    document.addEventListener('DOMContentLoaded', function(){
+      document.querySelectorAll('.settings-section').forEach(function(sec){
+        if(!sec) return;
+        // if section has no visible text or only whitespace, remove it
+        if((sec.textContent||'').trim().length === 0){ sec.remove(); }
+      });
+    });
+  </script>
+    <div id="toast" class="toast" hidden aria-live="polite"></div>
+    <!-- CONFIRMATION MODAL -->
+    <div id="confirmModal" class="modal" hidden>
+      <div class="modal-backdrop" data-close="confirm-modal"></div>
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+        <h2 id="confirmTitle">Confirmar</h2>
+        <p id="confirmMessage">¿Estás seguro?</p>
+        <div style="display:flex; gap:.5rem; justify-content:flex-end; margin-top:.8rem;">
+          <button id="confirmCancel" class="ghost">Cancelar</button>
+          <button id="confirmOk" class="primary">Confirmar</button>
+        </div>
+      </div>
+    </div>
+    <script src="../js/app.js"></script>
+</body>
+</html>

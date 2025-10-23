@@ -9,10 +9,22 @@
 
 <body>
   <header class="main-header">
-    <button class="user-button">👤</button>
     <img src="../images/PLANNEA.png" alt="Plannea Logo" class="logo" />
-    <button class="settings-button">⚙️</button>
+    <button id="btnSettings" class="settings-button" aria-label="Settings">⚙️</button>
   </header>
+  <div id="toast" class="toast" hidden aria-live="polite"></div>
+  <!-- CONFIRMATION MODAL -->
+  <div id="confirmModal" class="modal" hidden>
+    <div class="modal-backdrop" data-close="confirm-modal"></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <h2 id="confirmTitle">Confirmar</h2>
+      <p id="confirmMessage">¿Estás seguro?</p>
+      <div style="display:flex; gap:.5rem; justify-content:flex-end; margin-top:.8rem;">
+        <button id="confirmCancel" class="ghost">Cancelar</button>
+        <button id="confirmOk" class="primary">Confirmar</button>
+      </div>
+    </div>
+  </div>
 
   <div class="tabs">
     <button class="tab-button active" onclick="showSection('tickets')">🎫 Mis Tickets</button>
@@ -20,15 +32,11 @@
   </div>
 
   <section id="ticketsSection" class="tab-section active">
-    <div class="notification-card">
-      <h3>Indie Fest</h3>
-      <p>2 de septiembre, 20:00 hs. Lugar: Estadio Central.</p>
-      <span class="notification-date">Comprado hace 3 días</span>
+    <div class="tickets-header" style="display:flex; gap:.5rem; align-items:center; margin-bottom:.6rem;">
+      <input id="ticketsSearch" type="search" placeholder="Buscar mis tickets (evento, comprador, fecha)" aria-label="Buscar mis tickets" style="flex:1; padding:.4rem;" />
     </div>
-    <div class="notification-card">
-      <h3>Feria del Libro</h3>
-      <p>10 de agosto, 16:00 hs. Lugar: Centro Cultural.</p>
-      <span class="notification-date">Comprado hace 1 semana</span>
+    <div id="myTicketsContainer">
+      <!-- purchases will be rendered here -->
     </div>
   </section>
 
@@ -75,12 +83,77 @@
 </nav>
 
   <script>
+    // render purchases into Mis Tickets
+    function renderPurchases(){
+      const container = document.getElementById('myTicketsContainer');
+      if(!container) return;
+      const raw = localStorage.getItem('plannea_purchases');
+      const list = raw ? JSON.parse(raw) : [];
+      if(!list || list.length === 0){ container.innerHTML = '<div class="notification-card">No hay tickets comprados.</div>'; return; }
+      container.innerHTML = '';
+      // render newest first
+      list.slice().reverse().forEach(function(p){
+        const div = document.createElement('div'); div.className = 'notification-card ticket-card';
+        // include a cancel button (use purchase date ISO as identifier)
+        const dateKey = encodeURIComponent(p.date || '');
+        const evt = p.event || '';
+        const buyer = p.buyer || '';
+        const qty = p.qty || '';
+        const when = p.date ? new Date(p.date).toLocaleString() : '';
+        div.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:.5rem;"><div style="flex:1"><h3>'+ evt +'</h3><p>Cantidad: '+ qty +' — Comprador: '+ buyer +'</p><span class="notification-date">'+ when +'</span></div><div style="margin-left:.5rem"><button class="cancel-ticket ghost" data-date="'+ dateKey +'" aria-label="Cancelar ticket">Cancelar</button></div></div>';
+        container.appendChild(div);
+      });
+    }
+
+    // Delegated click handler for cancel buttons
+    document.addEventListener('click', function(e){
+      const btn = e.target.closest && e.target.closest('.cancel-ticket');
+      if(!btn) return;
+      const dateKey = btn.dataset && btn.dataset.date;
+      if(!dateKey) return;
+      const dateISO = decodeURIComponent(dateKey);
+      // find purchase to show a clear message
+      const raw = localStorage.getItem('plannea_purchases');
+      const list = raw ? JSON.parse(raw) : [];
+      const found = list.find(p => p.date === dateISO) || null;
+      const title = found ? (found.event || 'este ticket') : 'este ticket';
+      const summary = '¿Cancelar la compra para "' + title + '"?\nComprador: ' + (found ? (found.buyer||'') : '') + '\nCantidad: ' + (found ? (found.qty||'') : '') + '\n\nEsto eliminará el ticket de "Mis Tickets".';
+      // use global showConfirm (falls back to native confirm)
+      (window.showConfirm ? window.showConfirm(summary) : Promise.resolve(confirm(summary))).then(function(ok){
+        if(!ok) return;
+        // remove purchase
+        const newList = list.filter(p => p.date !== dateISO);
+        localStorage.setItem('plannea_purchases', JSON.stringify(newList));
+        // re-render
+        renderPurchases();
+        // toast
+        if(window.showToast) window.showToast('Ticket cancelado'); else alert('Ticket cancelado');
+      });
+    });
+
+    // search/filter for tickets
+    const ticketsSearch = document.getElementById('ticketsSearch');
+    if(ticketsSearch){
+      ticketsSearch.addEventListener('input', function(){
+        const q = this.value.trim().toLowerCase();
+        document.querySelectorAll('.ticket-card').forEach(card => {
+          const text = (card.textContent || '').toLowerCase();
+          card.style.display = q.length === 0 || text.includes(q) ? '' : 'none';
+        });
+      });
+    }
+
     function showSection(section) {
       document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.tab-section').forEach(sec => sec.classList.remove('active'));
-      document.querySelector(`.tab-button[onclick*="${section}"]`).classList.add('active');
-      document.getElementById(section + 'Section').classList.add('active');
+      const btn = document.querySelector('.tab-button[onclick*="'+section+'"]');
+      if(btn) btn.classList.add('active');
+      const target = document.getElementById(section + 'Section');
+      if(target) target.classList.add('active');
     }
+
+    document.addEventListener('DOMContentLoaded', function(){ renderPurchases(); });
   </script>
+  <script src="../js/app.js"></script>
 </body>
 </html>

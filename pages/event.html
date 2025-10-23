@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <title>Detalle del evento</title>
+</head>
+<body>
+  <header class="main-header">
+    <a href="./agenda.html" class="back-link">← Volver a Agenda</a>
+    <img src="../images/PLANNEA.png" alt="Plannea Logo" class="logo">
+    <button id="btnSettings" class="settings-button" aria-label="Settings">⚙️</button>
+  </header>
+
+  <main style="padding:1rem; max-width:800px; margin:0 auto;">
+    <div id="eventDetail">
+      <div class="event-hero" id="eventHero">
+        <img class="hero-image" id="heroImage" src="../images/placeholder.jpg" alt="">
+        <div>
+          <h1 class="event-title-big" id="heroTitle">Cargando...</h1>
+          <div class="event-meta" id="heroMeta">
+            <span id="heroDate">Fecha</span>
+            <span id="heroPlace">— Lugar no especificado</span>
+            <span id="heroPrice" style="margin-left: .6rem; font-weight:700; color:var(--primary)"></span>
+            <span id="heroAvail" style="margin-left: .6rem; color:var(--muted)"></span>
+          </div>
+          <div class="event-actions">
+            <button class="btn-buy" id="heroBuy">Comprar entrada</button>
+            <button class="btn-share" id="heroShare">Compartir</button>
+          </div>
+          <div class="event-description" id="heroDesc">Descripción...</div>
+        </div>
+      </div>
+      <section style="max-width:1000px; margin: .6rem auto 2rem; padding:0 1rem;">
+        <h3>También te puede interesar</h3>
+        <div class="related-list" id="relatedList"></div>
+      </section>
+    </div>
+  </main>
+
+  <!-- PURCHASE MODAL (re-uses same ids as other pages) -->
+  <div id="purchaseModal" class="modal" hidden>
+    <div class="modal-backdrop" data-close="purchase-modal"></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="purchaseTitle">
+      <button class="modal-close" data-close="purchase-modal" aria-label="Cerrar">✕</button>
+      <h2 id="purchaseTitle">Comprar entrada</h2>
+      <div style="display:grid; gap:.6rem;">
+        <div><strong id="purchaseEventName"></strong></div>
+        <label>Cantidad
+          <select id="purchaseQty"><option>1</option><option>2</option><option>3</option><option>4</option></select>
+        </label>
+        <label>Tu nombre
+          <input id="purchaseBuyer" type="text" placeholder="Nombre" />
+        </label>
+        <div style="display:flex; gap:.5rem; justify-content:flex-end;">
+          <button id="purchaseCancel" class="ghost">Cancelar</button>
+          <button id="purchaseConfirm" class="primary">Confirmar compra</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/events.js"></script>
+  <script src="../js/app.js"></script>
+  <script>
+    (function(){
+      function qs(name){
+        const params = new URLSearchParams(location.search);
+        return params.get(name);
+      }
+      const slug = qs('slug');
+      const events = window.planneaEvents || [];
+      const ev = events.find(x => x.slug === slug);
+      const container = document.getElementById('eventDetail');
+      if(!ev){ container.innerHTML = '<p>Evento no encontrado.</p>'; return; }
+
+      // populate hero
+      document.getElementById('heroImage').src = '../images/' + (ev.img||'placeholder.jpg');
+      document.getElementById('heroImage').alt = ev.nombre || '';
+      document.getElementById('heroTitle').textContent = ev.nombre || '';
+      document.getElementById('heroDate').textContent = ev.date || '';
+      document.getElementById('heroDesc').textContent = ev.description || '';
+
+      // buy button
+      document.getElementById('heroBuy').addEventListener('click', function(){ window.openPurchaseModal(ev.nombre);
+        // prefill buyer and qty defaults
+        document.getElementById('purchaseQty').value = '1';
+        document.getElementById('purchaseBuyer').value = '';
+      });
+
+      // show price and availability
+      document.getElementById('heroPrice').textContent = ' $' + (ev.price || 0).toLocaleString();
+      document.getElementById('heroAvail').textContent = 'Disponibles: ' + (ev.available || 0);
+
+      // share button: use Web Share API when available
+      document.getElementById('heroShare').addEventListener('click', function(){
+        const shareData = { title: ev.nombre, text: ev.description || '', url: window.location.href };
+        if(navigator.share){ navigator.share(shareData).catch(()=> showToast('No se pudo compartir')); }
+        else { navigator.clipboard?.writeText(window.location.href).then(()=> showToast('Enlace copiado al portapapeles')); }
+      });
+
+      // related
+      const related = document.getElementById('relatedList');
+      events.filter(e => e.slug !== ev.slug).slice(0,6).forEach(r => {
+        const rc = document.createElement('div'); rc.className = 'related-card';
+        const im = document.createElement('img'); im.src = '../images/' + (r.img||'placeholder.jpg'); im.alt = r.nombre || '';
+        const body = document.createElement('div'); body.className = 'rc-body';
+        const h4 = document.createElement('h4'); h4.textContent = r.nombre;
+        const p = document.createElement('p'); p.textContent = r.date || '';
+        const link = document.createElement('a'); link.href = './event.html?slug=' + encodeURIComponent(r.slug || ''); link.appendChild(im);
+        body.appendChild(h4); body.appendChild(p);
+        rc.appendChild(link); rc.appendChild(body);
+        related.appendChild(rc);
+      });
+    })();
+  </script>
+</body>
+</html>
