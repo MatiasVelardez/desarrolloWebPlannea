@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <title>Plannea - Eventos</title>
+</head>
+
+<body>
+<!-- HEADER -->
+<header class="main-header">
+    <button id="btnUser" class="user-button" aria-label="Login or Profile">👤</button>
+    <img src="images/PLANNEA.png" alt="Plannea Logo" class="logo" />
+    <button id="btnSettings" class="settings-button" aria-label="Settings" disabled aria-disabled="true">⚙️</button>
+</header>
+
+<!-- LOGIN / REGISTER MODAL -->
+<div id="authModal" class="modal" hidden>
+    <div class="modal-backdrop" data-close="modal"></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+        <button class="modal-close" data-close="modal" aria-label="Cerrar">✕</button>
+        <h2 id="authTitle">Cuenta</h2>
+
+        <div class="auth-tabs">
+            <button id="tabLogin" class="tab active" aria-pressed="true">Iniciar sesión</button>
+            <button id="tabRegister" class="tab" aria-pressed="false">Registrarse</button>
+        </div>
+
+        <div id="authContent">
+            <div id="authMessage" class="auth-message" hidden aria-live="polite"></div>
+
+            <div class="auth-forms-row">
+                <form id="loginForm" class="auth-form" aria-label="Formulario iniciar sesión">
+                    <label for="loginEmail">Correo electrónico
+                        <input id="loginEmail" name="email" type="email" required />
+                    </label>
+                    <label for="loginPassword">Contraseña
+                        <input id="loginPassword" name="password" type="password" required />
+                    </label>
+                    <div class="auth-actions">
+                        <button type="submit" class="primary">Iniciar sesión</button>
+                    </div>
+                </form>
+
+                <form id="registerForm" class="auth-form" aria-label="Formulario registro">
+                    <label for="regEmail">Correo electrónico
+                        <input id="regEmail" name="email" type="email" required />
+                    </label>
+                    <label for="regUsername">Nombre de usuario
+                        <input id="regUsername" name="username" type="text" required />
+                    </label>
+                    <label for="regPassword">Contraseña
+                        <input id="regPassword" name="password" type="password" required />
+                    </label>
+                    <div class="auth-actions">
+                        <button type="submit" class="primary">Registrarse</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast notifications -->
+<div id="toast" class="toast" hidden aria-live="polite"></div>
+
+<!-- CONTENIDO -->
+<main>
+    <div id="map" style="height: calc(100vh - 120px);"></div>
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+    <a href="index.html" class="nav-item active" aria-label="Events">
+        <!-- Ticket (minimal) -->
+        <svg class="nav-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7h18v4a2 2 0 0 1-2 2 2 2 0 1 0 0 4v4H3v-4a2 2 0 1 0 0-4V7z"/>
+        </svg>
+        <span class="nav-text">Events</span>
+    </a>
+    <a href="pages/agenda.html" class="nav-item" aria-label="Agenda">
+        <!-- Calendar -->
+        <svg class="nav-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/>
+        </svg>
+        <span class="nav-text">Agenda</span>
+    </a>
+    <a href="pages/notificaciones.html" class="nav-item" aria-label="Notifications">
+        <!-- Bell -->
+        <svg class="nav-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <span class="nav-text">Notifications</span>
+    </a>
+</nav>
+
+<!-- LIBRERÍAS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<!-- MAPA -->
+<script>
+    navigator.geolocation.getCurrentPosition(
+      function (position) {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+
+        const map = L.map('map').setView([lat, lng], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: 'Map data © OpenStreetMap contributors'
+        }).addTo(map);
+
+        L.marker([lat, lng])
+          .addTo(map)
+          .bindPopup('Estás aquí')
+          .openPopup();
+
+        const eventos = [
+          { nombre: 'Indie Fest', lat: lat + 0.01,  lng: lng + 0.01 },
+          { nombre: 'Cine al Aire Libre', lat: lat - 0.015, lng: lng + 0.005 },
+          { nombre: 'Feria del Libro', lat: lat + 0.008, lng: lng - 0.012 }
+        ];
+
+        eventos.forEach(e => {
+          L.marker([e.lat, e.lng]).addTo(map).bindPopup(e.nombre);
+        });
+      },
+      function () {
+        alert('No se pudo obtener tu ubicación. Asegúrate de habilitarla.');
+      }
+    );
+</script>
+
+<script src="js/app.js"></script>
+</body>
+</html>
