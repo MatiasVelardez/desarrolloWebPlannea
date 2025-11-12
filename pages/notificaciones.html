@@ -4,15 +4,85 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Plannea - Notificaciones</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
   <link rel="stylesheet" href="../css/styles.css" />
 </head>
 
 <body>
   <header class="main-header">
     <img src="../images/PLANNEA.png" alt="Plannea Logo" class="logo" />
-    <button id="btnSettings" class="settings-button" aria-label="Settings">⚙️</button>
+    <div class="header-buttons">
+      <button id="btnUser" class="user-button" aria-label="Login or Profile">👤</button>
+      <button id="btnSettings" class="settings-button" aria-label="Settings">⚙️</button>
+    </div>
   </header>
   <div id="toast" class="toast" hidden aria-live="polite"></div>
+  <!-- LOGIN / REGISTER MODAL -->
+  <div id="authModal" class="modal" hidden>
+    <div class="modal-backdrop" data-close="modal"></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+      <button class="modal-close" data-close="modal" aria-label="Cerrar">×</button>
+      <h2 id="authTitle">Cuenta</h2>
+
+      <div id="userContent" hidden>
+        <div class="auth-tabs">
+          <button id="tabProfile" class="tab active" aria-pressed="true">Perfil</button>
+          <button id="tabTickets" class="tab" aria-pressed="false">Mis Tickets</button>
+        </div>
+
+        <div id="profileSection">
+          <p>Conectado como <strong id="profileEmail"></strong></p>
+          <button id="btnLogout" class="ghost">Cerrar sesión</button>
+        </div>
+
+        <div id="ticketsSection" hidden>
+          <div class="tickets-header" style="display:flex; gap:.5rem; align-items:center; margin-bottom:.6rem;">
+            <input id="ticketsSearch" type="search" placeholder="Buscar mis tickets" style="flex:1; padding:.4rem;" />
+          </div>
+          <div id="myTicketsContainer">
+            <!-- tickets rendered here -->
+          </div>
+        </div>
+      </div>
+
+      <div id="authContent">
+        <div id="authMessage" class="auth-message" hidden aria-live="polite"></div>
+        <div class="auth-tabs">
+          <button id="tabLogin" class="tab active" aria-pressed="true">Iniciar sesión</button>
+          <button id="tabRegister" class="tab" aria-pressed="false">Registrarse</button>
+        </div>
+
+        <div class="auth-forms-row">
+          <form id="loginForm" class="auth-form" aria-label="Formulario iniciar sesión">
+            <label for="loginEmail">Correo electrónico
+              <input id="loginEmail" name="email" type="email" required />
+            </label>
+            <label for="loginPassword">Contraseña
+              <input id="loginPassword" name="password" type="password" required />
+            </label>
+            <div class="auth-actions">
+              <button type="submit" class="primary">Iniciar sesión</button>
+            </div>
+          </form>
+
+          <form id="registerForm" class="auth-form" aria-label="Formulario registro">
+            <label for="regEmail">Correo electrónico
+              <input id="regEmail" name="email" type="email" required />
+            </label>
+            <label for="regUsername">Nombre de usuario
+              <input id="regUsername" name="username" type="text" required />
+            </label>
+            <label for="regPassword">Contraseña
+              <input id="regPassword" name="password" type="password" required />
+            </label>
+            <div class="auth-actions">
+              <button type="submit" class="primary">Registrarse</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
   <!-- CONFIRMATION MODAL -->
   <div id="confirmModal" class="modal" hidden>
     <div class="modal-backdrop" data-close="confirm-modal"></div>
@@ -26,21 +96,7 @@
     </div>
   </div>
 
-  <div class="tabs">
-    <button class="tab-button active" onclick="showSection('tickets')">🎫 Mis Tickets</button>
-    <button class="tab-button" onclick="showSection('notifications')">🔔 Notificaciones</button>
-  </div>
-
-  <section id="ticketsSection" class="tab-section active">
-    <div class="tickets-header" style="display:flex; gap:.5rem; align-items:center; margin-bottom:.6rem;">
-      <input id="ticketsSearch" type="search" placeholder="Buscar mis tickets (evento, comprador, fecha)" aria-label="Buscar mis tickets" style="flex:1; padding:.4rem;" />
-    </div>
-    <div id="myTicketsContainer">
-      <!-- purchases will be rendered here -->
-    </div>
-  </section>
-
-  <section id="notificationsSection" class="tab-section">
+  <section id="notificationsSection">
     <div class="notification-card">
       <h3>Nueva entrada disponible</h3>
       <p>La venta de tickets para Indie Fest comenzó.</p>
@@ -82,78 +138,7 @@
   </a>
 </nav>
 
-  <script>
-    // render purchases into Mis Tickets
-    function renderPurchases(){
-      const container = document.getElementById('myTicketsContainer');
-      if(!container) return;
-      const raw = localStorage.getItem('plannea_purchases');
-      const list = raw ? JSON.parse(raw) : [];
-      if(!list || list.length === 0){ container.innerHTML = '<div class="notification-card">No hay tickets comprados.</div>'; return; }
-      container.innerHTML = '';
-      // render newest first
-      list.slice().reverse().forEach(function(p){
-        const div = document.createElement('div'); div.className = 'notification-card ticket-card';
-        // include a cancel button (use purchase date ISO as identifier)
-        const dateKey = encodeURIComponent(p.date || '');
-        const evt = p.event || '';
-        const buyer = p.buyer || '';
-        const qty = p.qty || '';
-        const when = p.date ? new Date(p.date).toLocaleString() : '';
-        div.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:.5rem;"><div style="flex:1"><h3>'+ evt +'</h3><p>Cantidad: '+ qty +' — Comprador: '+ buyer +'</p><span class="notification-date">'+ when +'</span></div><div style="margin-left:.5rem"><button class="cancel-ticket ghost" data-date="'+ dateKey +'" aria-label="Cancelar ticket">Cancelar</button></div></div>';
-        container.appendChild(div);
-      });
-    }
-
-    // Delegated click handler for cancel buttons
-    document.addEventListener('click', function(e){
-      const btn = e.target.closest && e.target.closest('.cancel-ticket');
-      if(!btn) return;
-      const dateKey = btn.dataset && btn.dataset.date;
-      if(!dateKey) return;
-      const dateISO = decodeURIComponent(dateKey);
-      // find purchase to show a clear message
-      const raw = localStorage.getItem('plannea_purchases');
-      const list = raw ? JSON.parse(raw) : [];
-      const found = list.find(p => p.date === dateISO) || null;
-      const title = found ? (found.event || 'este ticket') : 'este ticket';
-      const summary = '¿Cancelar la compra para "' + title + '"?\nComprador: ' + (found ? (found.buyer||'') : '') + '\nCantidad: ' + (found ? (found.qty||'') : '') + '\n\nEsto eliminará el ticket de "Mis Tickets".';
-      // use global showConfirm (falls back to native confirm)
-      (window.showConfirm ? window.showConfirm(summary) : Promise.resolve(confirm(summary))).then(function(ok){
-        if(!ok) return;
-        // remove purchase
-        const newList = list.filter(p => p.date !== dateISO);
-        localStorage.setItem('plannea_purchases', JSON.stringify(newList));
-        // re-render
-        renderPurchases();
-        // toast
-        if(window.showToast) window.showToast('Ticket cancelado'); else alert('Ticket cancelado');
-      });
-    });
-
-    // search/filter for tickets
-    const ticketsSearch = document.getElementById('ticketsSearch');
-    if(ticketsSearch){
-      ticketsSearch.addEventListener('input', function(){
-        const q = this.value.trim().toLowerCase();
-        document.querySelectorAll('.ticket-card').forEach(card => {
-          const text = (card.textContent || '').toLowerCase();
-          card.style.display = q.length === 0 || text.includes(q) ? '' : 'none';
-        });
-      });
-    }
-
-    function showSection(section) {
-      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.tab-section').forEach(sec => sec.classList.remove('active'));
-      const btn = document.querySelector('.tab-button[onclick*="'+section+'"]');
-      if(btn) btn.classList.add('active');
-      const target = document.getElementById(section + 'Section');
-      if(target) target.classList.add('active');
-    }
-
-    document.addEventListener('DOMContentLoaded', function(){ renderPurchases(); });
-  </script>
+  <!-- No script needed for notifications only -->
   <script src="../js/app.js"></script>
 </body>
 </html>

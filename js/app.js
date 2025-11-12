@@ -74,32 +74,103 @@
   }
   // profileMenu logic removed because menu was deleted from HTML
 
+  // Render tickets in modal
+  function renderModalTickets(){
+    const container = document.getElementById('myTicketsContainer');
+    if(!container) return;
+    const raw = localStorage.getItem('plannea_purchases');
+    const list = raw ? JSON.parse(raw) : [];
+    if(!list || list.length === 0){ 
+      container.innerHTML = '<div class="notification-card">No hay tickets comprados.</div>'; 
+      return; 
+    }
+    container.innerHTML = '';
+    // render newest first
+    list.slice().reverse().forEach(function(p){
+      const div = document.createElement('div'); 
+      div.className = 'notification-card ticket-card';
+      const dateKey = encodeURIComponent(p.date || '');
+      const evt = p.event || '';
+      const buyer = p.buyer || '';
+      const qty = p.qty || '';
+      const recipient = p.recipient || '';
+      const when = p.date ? new Date(p.date).toLocaleString() : '';
+      const recipientPart = recipient ? ' — Destinatario: ' + recipient : '';
+      div.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:.5rem;">
+          <div style="flex:1">
+            <h3>${evt}</h3>
+            <p>Cantidad: ${qty} — Comprador: ${buyer}${recipientPart}</p>
+            <span class="notification-date">${when}</span>
+          </div>
+          <div style="margin-left:.5rem">
+            <button class="cancel-ticket ghost" data-date="${dateKey}" aria-label="Cancelar ticket">Cancelar</button>
+          </div>
+        </div>
+      `;
+      container.appendChild(div);
+    });
+  }
+
   // UI según estado
   function updateHeaderUI(){
     if(!btnUser) return;
     if(state.user){
       btnUser.setAttribute('aria-label', `Profile (${state.user.email})`);
-      btnUser.textContent = '👤 ' + (state.user.username || state.user.email);
+      btnUser.textContent = '👤';
+      document.getElementById('userContent').hidden = false;
+      document.getElementById('authContent').hidden = true;
+      document.getElementById('profileEmail').textContent = state.user.email;
     }else{
       btnUser.setAttribute('aria-label', 'Login');
-      // profileMenu removed
       btnUser.textContent = '👤';
+      document.getElementById('userContent').hidden = true;
+      document.getElementById('authContent').hidden = false;
     }
   }
 
   // Eventos
-  // El botón de usuario fue deshabilitado por el usuario: no le añadimos listener
-  // Re-attach behavior: open auth modal when not logged, else allow logout via confirm
   if(btnUser){
     btnUser.addEventListener('click', function(){
       if(state.user){
-        // si ya está logueado, preguntar si desea cerrar sesión
-        showConfirm('Cerrar sesión?').then(ok => { if(ok){ state.user = null; updateHeaderUI(); showToast('Sesión cerrada.'); } });
+        openAuthModal();
+        document.getElementById('userContent').hidden = false;
+        document.getElementById('authContent').hidden = true;
+        renderModalTickets();
       }else{
-        openAuthModal(); showLogin();
+        openAuthModal(); 
+        showLogin();
       }
     });
   }
+
+  // Logout button
+  document.getElementById('btnLogout')?.addEventListener('click', function(){
+    showConfirm('¿Cerrar sesión?').then(ok => { 
+      if(ok){ 
+        state.user = null; 
+        updateHeaderUI(); 
+        showToast('Sesión cerrada.'); 
+        closeAuthModal();
+      } 
+    });
+  });
+
+  // Profile/Tickets tabs
+  document.getElementById('tabProfile')?.addEventListener('click', function(){
+    this.classList.add('active');
+    document.getElementById('tabTickets').classList.remove('active');
+    document.getElementById('profileSection').hidden = false;
+    document.getElementById('ticketsSection').hidden = true;
+  });
+
+  document.getElementById('tabTickets')?.addEventListener('click', function(){
+    this.classList.add('active');
+    document.getElementById('tabProfile').classList.remove('active');
+    document.getElementById('profileSection').hidden = true;
+    document.getElementById('ticketsSection').hidden = false;
+    renderModalTickets();
+  });
 
   // Auth modal listeners
   modalClose?.addEventListener('click', function(){ closeAuthModal(); });
@@ -257,6 +328,11 @@
     const totalEl = document.getElementById('purchaseTotal');
     const qty = parseInt(document.getElementById('purchaseQty')?.value || '1',10) || 1;
   if(totalEl) totalEl.textContent = 'Total: ' + window.formatPrice((ev ? ev.price || 0 : 0) * qty);
+    // hide recipient field by default
+    const labelRecipient = document.getElementById('labelRecipient');
+    const recipientInput = document.getElementById('purchaseRecipient');
+    if(labelRecipient) labelRecipient.style.display = 'none';
+    if(recipientInput) recipientInput.value = '';
     modal.hidden = false; document.body.classList.add('modal-open');
   }
 
@@ -309,9 +385,15 @@
 
   purchaseConfirm?.addEventListener('click', function(){
     const qty = parseInt(document.getElementById('purchaseQty')?.value || '1',10) || 1;
-    const buyer = document.getElementById('purchaseBuyer')?.value || '';
+    const buyer = (document.getElementById('purchaseBuyer')?.value || '').toString();
+    const recipient = (document.getElementById('purchaseRecipient')?.value || '').toString();
     const eventName = document.getElementById('purchaseEventName')?.textContent || 'Evento';
     if(!buyer){ showToast('Ingrese su nombre para completar la compra'); return; }
+    // If buyer indicates a gift purchase, require recipient
+    const buyerLower = (buyer || '').trim().toLowerCase();
+    if(buyerLower === 'regalo' || buyerLower === 'como regalo' || buyerLower === 'regalo:'){
+      if(!recipient || !recipient.trim()){ showToast('Ingrese destinatario para compra como regalo'); return; }
+    }
 
     // Find event (use merged state to get current availability)
     const stateList = (window.getPlanneaEventsState && window.getPlanneaEventsState()) || (window.planneaEvents || []);
@@ -332,18 +414,28 @@
       'Cantidad: ' + qty,
       'Total: ' + window.formatPrice(total),
       'Comprador: ' + buyer,
+      'Destinatario: ' + (recipient || '-'),
       '\n¿Desea confirmar la compra?'
     ].join('\n');
 
+    // Close purchase modal before showing global confirmation so the confirm modal is visible above
+    const modalEl = document.getElementById('purchaseModal');
+    const wasOpen = modalEl && !modalEl.hidden;
+    if(wasOpen){ modalEl.hidden = true; document.body.classList.remove('modal-open'); }
+
     showConfirm(summary).then(function(ok){
-      if(!ok) return;
+      if(!ok){
+        // user cancelled the confirmation: reopen the purchase modal preserving inputs
+        if(wasOpen){ modalEl.hidden = false; document.body.classList.add('modal-open'); }
+        return;
+      }
 
       // persist purchase
       try{
-        const purchasesRaw = localStorage.getItem('plannea_purchases');
-        const purchases = purchasesRaw ? JSON.parse(purchasesRaw) : [];
-        purchases.push({ event: eventName, slug: slug, qty: qty, buyer: buyer, unitPrice: unitPrice, total: total, date: new Date().toISOString() });
-        localStorage.setItem('plannea_purchases', JSON.stringify(purchases));
+  const purchasesRaw = localStorage.getItem('plannea_purchases');
+  const purchases = purchasesRaw ? JSON.parse(purchasesRaw) : [];
+  purchases.push({ event: eventName, slug: slug, qty: qty, buyer: buyer, recipient: recipient || null, unitPrice: unitPrice, total: total, date: new Date().toISOString() });
+  localStorage.setItem('plannea_purchases', JSON.stringify(purchases));
       }catch(e){ console.error('Error guardando compra', e); }
 
       // decrement availability if we know the slug

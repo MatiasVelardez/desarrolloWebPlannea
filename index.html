@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
   <link rel="stylesheet" href="css/styles.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>    
   <!-- Marker cluster styles -->
@@ -14,25 +15,47 @@
 <body>
   <!-- HEADER -->
   <header class="main-header">
-    <button id="btnUser" class="user-button" aria-label="Login or Profile">👤</button>
     <img src="images/PLANNEA.png" alt="Plannea Logo" class="logo" />
-  <button id="btnSettings" class="settings-button" aria-label="Settings">⚙️</button>
+    <div class="header-buttons">
+      <button id="btnUser" class="user-button" aria-label="Login or Profile">👤</button>
+      <button id="btnSettings" class="settings-button" aria-label="Settings">⚙️</button>
+    </div>
   </header>
 
   <!-- LOGIN / REGISTER MODAL -->
   <div id="authModal" class="modal" hidden>
     <div class="modal-backdrop" data-close="modal"></div>
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
-      <button class="modal-close" data-close="modal" aria-label="Cerrar">✕</button>
+      <button class="modal-close" data-close="modal" aria-label="Cerrar">×</button>
       <h2 id="authTitle">Cuenta</h2>
 
-      <div class="auth-tabs">
-        <button id="tabLogin" class="tab active" aria-pressed="true">Iniciar sesión</button>
-        <button id="tabRegister" class="tab" aria-pressed="false">Registrarse</button>
+      <div id="userContent" hidden>
+        <div class="auth-tabs">
+          <button id="tabProfile" class="tab active" aria-pressed="true">Perfil</button>
+          <button id="tabTickets" class="tab" aria-pressed="false">Mis Tickets</button>
+        </div>
+
+        <div id="profileSection">
+          <p>Conectado como <strong id="profileEmail"></strong></p>
+          <button id="btnLogout" class="ghost">Cerrar sesión</button>
+        </div>
+
+        <div id="ticketsSection" hidden>
+          <div class="tickets-header" style="display:flex; gap:.5rem; align-items:center; margin-bottom:.6rem;">
+            <input id="ticketsSearch" type="search" placeholder="Buscar mis tickets" style="flex:1; padding:.4rem;" />
+          </div>
+          <div id="myTicketsContainer">
+            <!-- tickets rendered here -->
+          </div>
+        </div>
       </div>
 
       <div id="authContent">
         <div id="authMessage" class="auth-message" hidden aria-live="polite"></div>
+        <div class="auth-tabs">
+          <button id="tabLogin" class="tab active" aria-pressed="true">Iniciar sesión</button>
+          <button id="tabRegister" class="tab" aria-pressed="false">Registrarse</button>
+        </div>
 
         <div class="auth-forms-row">
           <form id="loginForm" class="auth-form" aria-label="Formulario iniciar sesión">
@@ -70,11 +93,11 @@
   <div id="geoModal" class="modal" hidden>
     <div class="modal-backdrop" data-close="geo-modal"></div>
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="geoTitle">
-      <button class="modal-close" data-close="geo-modal" aria-label="Cerrar">✕</button>
-      <h2 id="geoTitle">Permiso de ubicación necesario</h2>
-      <p>Se necesita el acceso a la ubicacion para el buen funcionamiento de la web. Por favor, reinicie la pagina</p>
+      <h2 id="geoTitle">Ubicación</h2>
+      <p>¿Deseas activar la ubicación para ver eventos cercanos? Esto es opcional y puedes cambiarlo más tarde en la configuración.</p>
       <div style="display:flex; gap:.5rem; justify-content:flex-end; margin-top: .8rem;">
-        <button id="geoReloadBtn" class="primary">Reiniciar página</button>
+        <button class="ghost" data-close="geo-modal">No usar ubicación</button>
+        <button id="geoAllowBtn" class="primary">Activar ubicación</button>
       </div>
     </div>
   </div>
@@ -133,67 +156,84 @@
 
   <!-- MAPA -->
   <script>
-    navigator.geolocation.getCurrentPosition(
-      function (position) {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
+    function initMap(position) {
+      const defaultLat = -34.6037;
+      const defaultLng = -58.3816; // Coordenadas por defecto (Buenos Aires)
+      
+      const lat = position ? position.coords.latitude : defaultLat;
+      const lng = position ? position.coords.longitude : defaultLng;
 
-        const map = L.map('map').setView([lat, lng], 13);
+      const map = L.map('map').setView([lat, lng], 13);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: 'Map data © OpenStreetMap contributors'
-        }).addTo(map);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: 'Map data © OpenStreetMap contributors'
+      }).addTo(map);
 
-        // marker cluster group
-        const markersGroup = L.markerClusterGroup();
+      // marker cluster group
+      const markersGroup = L.markerClusterGroup();
 
-        // marker for user
+      // marker for user only if we have their position
+      if (position) {
         const you = L.marker([lat, lng]).bindPopup('Estás aquí');
         markersGroup.addLayer(you);
-
-        // Use shared events from js/events.js (window.planneaEvents)
-        const baseEvents = window.planneaEvents || [];
-        const eventos = baseEvents.map(ev => {
-          const off = ev.offset || [0,0];
-          return { nombre: ev.nombre, slug: ev.slug, lat: lat + (off[0] || 0), lng: lng + (off[1] || 0) };
-        });
-
-        eventos.forEach(e => {
-          const m = L.marker([e.lat, e.lng]);
-          const safeName = (e.nombre || '').replace(/'/g, "\\'");
-          const detailUrl = 'pages/event.html?slug=' + encodeURIComponent(e.slug || '');
-          m.bindPopup(`<strong>${e.nombre}</strong><br/><a href="${detailUrl}">Ver detalle</a><br/><button onclick="openPurchaseModal('${safeName}')">Comprar</button>`);
-          markersGroup.addLayer(m);
-        });
-
-        map.addLayer(markersGroup);
-      },
-      function () {
-        // Mostrar modal de permiso denegado en lugar de alert
-        const geoModal = document.getElementById('geoModal');
-        if(geoModal){
-          geoModal.hidden = false;
-          document.body.classList.add('modal-open');
-          // close handlers
-          const closeBtns = geoModal.querySelectorAll('[data-close="geo-modal"], .modal-close');
-          closeBtns.forEach(b => b.addEventListener('click', function(){ geoModal.hidden = true; document.body.classList.remove('modal-open'); }));
-          // backdrop click
-          geoModal.addEventListener('click', function(e){ if(e.target && e.target.dataset && e.target.dataset.close === 'geo-modal'){ geoModal.hidden = true; document.body.classList.remove('modal-open'); }});
-          // reload button
-          const reloadBtn = document.getElementById('geoReloadBtn');
-          reloadBtn?.addEventListener('click', function(){ location.reload(); });
-        }else{
-          alert('No se pudo obtener tu ubicación. Asegúrate de habilitarla.');
-        }
       }
-    );
+
+      // Use shared events from js/events.js (window.planneaEvents)
+      const baseEvents = window.planneaEvents || [];
+      const eventos = baseEvents.map(ev => {
+        const off = ev.offset || [0,0];
+        return { nombre: ev.nombre, slug: ev.slug, lat: lat + (off[0] || 0), lng: lng + (off[1] || 0) };
+      });
+
+      eventos.forEach(e => {
+        const m = L.marker([e.lat, e.lng]);
+        const safeName = (e.nombre || '').replace(/'/g, "\\'");
+        const detailUrl = 'pages/event.html?slug=' + encodeURIComponent(e.slug || '');
+        m.bindPopup(`<strong>${e.nombre}</strong><br/><a href="${detailUrl}">Ver detalle</a><br/><button onclick="openPurchaseModal('${safeName}')">Comprar</button>`);
+        markersGroup.addLayer(m);
+      });
+
+      map.addLayer(markersGroup);
+    }
+
+    // Show geolocation modal first
+    const geoModal = document.getElementById('geoModal');
+    if (geoModal) {
+      geoModal.hidden = false;
+      document.body.classList.add('modal-open');
+
+      // Handle button clicks
+      document.getElementById('geoAllowBtn')?.addEventListener('click', function() {
+        navigator.geolocation.getCurrentPosition(
+          function(position) {
+            geoModal.hidden = true;
+            document.body.classList.remove('modal-open');
+            initMap(position);
+          },
+          function() {
+            geoModal.hidden = true;
+            document.body.classList.remove('modal-open');
+            initMap(null); // Initialize with default coordinates
+          }
+        );
+      });
+
+      // Handle "No usar ubicación"
+      const skipButtons = geoModal.querySelectorAll('[data-close="geo-modal"]');
+      skipButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+          geoModal.hidden = true;
+          document.body.classList.remove('modal-open');
+          initMap(null); // Initialize with default coordinates
+        });
+      });
+    }
   </script>
 
   <!-- PURCHASE MODAL -->
   <div id="purchaseModal" class="modal" hidden>
     <div class="modal-backdrop" data-close="purchase-modal"></div>
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="purchaseTitle">
-      <button class="modal-close" data-close="purchase-modal" aria-label="Cerrar">✕</button>
       <h2 id="purchaseTitle">Comprar entrada</h2>
       <div style="display:grid; gap:.6rem;">
         <div><strong id="purchaseEventName"></strong></div>
@@ -202,6 +242,9 @@
         </label>
         <label>Tu nombre
           <input id="purchaseBuyer" type="text" placeholder="Nombre" />
+        </label>
+        <label id="labelRecipient" style="display:none">Destinatario (opcional)
+          <input id="purchaseRecipient" type="text" placeholder="Nombre del destinatario" />
         </label>
         <div id="purchaseTotal" style="font-weight:700; margin-top:.25rem">Total: -</div>
         <div style="display:flex; gap:.5rem; justify-content:flex-end;">

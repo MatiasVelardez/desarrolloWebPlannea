@@ -3,15 +3,88 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
   <link rel="stylesheet" href="../css/styles.css" />
   <title>Detalle del evento</title>
 </head>
 <body>
   <header class="main-header">
-    <a href="./agenda.html" class="back-link">← Volver a Agenda</a>
-    <img src="../images/PLANNEA.png" alt="Plannea Logo" class="logo">
-    <button id="btnSettings" class="settings-button" aria-label="Settings">⚙️</button>
+    <div style="display: flex; align-items: center; gap: 1rem">
+      <a href="./agenda.html" class="back-link">← Volver a Agenda</a>
+      <img src="../images/PLANNEA.png" alt="Plannea Logo" class="logo">
+    </div>
+    <div class="header-buttons">
+      <button id="btnUser" class="user-button" aria-label="Login or Profile">👤</button>
+      <button id="btnSettings" class="settings-button" aria-label="Settings">⚙️</button>
+    </div>
   </header>
+
+  <!-- LOGIN / REGISTER MODAL -->
+  <div id="authModal" class="modal" hidden>
+    <div class="modal-backdrop" data-close="modal"></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+      <button class="modal-close" data-close="modal" aria-label="Cerrar">×</button>
+      <h2 id="authTitle">Cuenta</h2>
+
+      <div id="userContent" hidden>
+        <div class="auth-tabs">
+          <button id="tabProfile" class="tab active" aria-pressed="true">Perfil</button>
+          <button id="tabTickets" class="tab" aria-pressed="false">Mis Tickets</button>
+        </div>
+
+        <div id="profileSection">
+          <p>Conectado como <strong id="profileEmail"></strong></p>
+          <button id="btnLogout" class="ghost">Cerrar sesión</button>
+        </div>
+
+        <div id="ticketsSection" hidden>
+          <div class="tickets-header" style="display:flex; gap:.5rem; align-items:center; margin-bottom:.6rem;">
+            <input id="ticketsSearch" type="search" placeholder="Buscar mis tickets" style="flex:1; padding:.4rem;" />
+          </div>
+          <div id="myTicketsContainer">
+            <!-- tickets rendered here -->
+          </div>
+        </div>
+      </div>
+
+      <div id="authContent">
+        <div id="authMessage" class="auth-message" hidden aria-live="polite"></div>
+        <div class="auth-tabs">
+          <button id="tabLogin" class="tab active" aria-pressed="true">Iniciar sesión</button>
+          <button id="tabRegister" class="tab" aria-pressed="false">Registrarse</button>
+        </div>
+
+        <div class="auth-forms-row">
+          <form id="loginForm" class="auth-form" aria-label="Formulario iniciar sesión">
+            <label for="loginEmail">Correo electrónico
+              <input id="loginEmail" name="email" type="email" required />
+            </label>
+            <label for="loginPassword">Contraseña
+              <input id="loginPassword" name="password" type="password" required />
+            </label>
+            <div class="auth-actions">
+              <button type="submit" class="primary">Iniciar sesión</button>
+            </div>
+          </form>
+
+          <form id="registerForm" class="auth-form" aria-label="Formulario registro">
+            <label for="regEmail">Correo electrónico
+              <input id="regEmail" name="email" type="email" required />
+            </label>
+            <label for="regUsername">Nombre de usuario
+              <input id="regUsername" name="username" type="text" required />
+            </label>
+            <label for="regPassword">Contraseña
+              <input id="regPassword" name="password" type="password" required />
+            </label>
+            <div class="auth-actions">
+              <button type="submit" class="primary">Registrarse</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <main style="padding:1rem; max-width:800px; margin:0 auto;">
     <div id="eventDetail">
@@ -27,7 +100,9 @@
           </div>
           <div class="event-actions">
             <button class="btn-buy" id="heroBuy">Comprar entrada</button>
+            <button class="btn-buy" id="heroGift" style="background:#5aa0d8;">Comprar como regalo</button>
             <button class="btn-share" id="heroShare">Compartir</button>
+            <button class="btn-share" id="heroCalendar" title="Agregar al calendario">Añadir al calendario</button>
           </div>
           <div class="event-description" id="heroDesc">Descripción...</div>
         </div>
@@ -41,9 +116,8 @@
 
   <!-- PURCHASE MODAL (re-uses same ids as other pages) -->
   <div id="purchaseModal" class="modal" hidden>
-    <div class="modal-backdrop" data-close="purchase-modal"></div>
+    <div class="modal-backdrop"></div>
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="purchaseTitle">
-      <button class="modal-close" data-close="purchase-modal" aria-label="Cerrar">✕</button>
       <h2 id="purchaseTitle">Comprar entrada</h2>
       <div style="display:grid; gap:.6rem;">
         <div><strong id="purchaseEventName"></strong></div>
@@ -52,6 +126,9 @@
         </label>
         <label>Tu nombre
           <input id="purchaseBuyer" type="text" placeholder="Nombre" />
+        </label>
+        <label id="labelRecipient" style="display:none">Destinatario (opcional)
+          <input id="purchaseRecipient" type="text" placeholder="Nombre del destinatario" />
         </label>
         <div style="display:flex; gap:.5rem; justify-content:flex-end;">
           <button id="purchaseCancel" class="ghost">Cancelar</button>
@@ -83,21 +160,62 @@
       document.getElementById('heroDesc').textContent = ev.description || '';
 
       // buy button
-      document.getElementById('heroBuy').addEventListener('click', function(){ window.openPurchaseModal(ev.nombre);
+      document.getElementById('heroBuy').addEventListener('click', function(){
+        window.openPurchaseModal(ev.nombre);
         // prefill buyer and qty defaults
         document.getElementById('purchaseQty').value = '1';
         document.getElementById('purchaseBuyer').value = '';
       });
 
-      // show price and availability
-      document.getElementById('heroPrice').textContent = ' $' + (ev.price || 0).toLocaleString();
-      document.getElementById('heroAvail').textContent = 'Disponibles: ' + (ev.available || 0);
+  // show price and availability (use formatPrice if available)
+  try{ document.getElementById('heroPrice').textContent = window.formatPrice ? window.formatPrice(ev.price || 0) : (' $' + (ev.price || 0).toLocaleString()); }catch(e){ document.getElementById('heroPrice').textContent = ' $' + (ev.price || 0).toLocaleString(); }
+  // capacity and availability
+  const cap = ev.capacity || 0;
+  const avail = ev.available || 0;
+  const sold = cap ? Math.max(0, cap - avail) : 0;
+  const percent = cap ? Math.round((sold / cap) * 100) : 0;
+  const heroAvailEl = document.getElementById('heroAvail');
+  if(heroAvailEl){
+    heroAvailEl.textContent = 'Disponibles: ' + avail + (cap ? (' / Capacidad: ' + cap) : '');
+    // add a simple progress bar
+    const existingBar = document.getElementById('availBar');
+    if(existingBar) existingBar.remove();
+    const barWrap = document.createElement('div'); barWrap.id = 'availBar'; barWrap.style.marginTop = '.5rem'; barWrap.style.height = '8px'; barWrap.style.background = '#eee'; barWrap.style.borderRadius = '6px'; barWrap.style.overflow = 'hidden';
+    const fill = document.createElement('div'); fill.style.height = '100%'; fill.style.width = percent + '%'; fill.style.background = 'linear-gradient(90deg, #7b4bb7, #b589f7)';
+    barWrap.appendChild(fill);
+    heroAvailEl.parentNode && heroAvailEl.parentNode.appendChild(barWrap);
+  }
 
       // share button: use Web Share API when available
       document.getElementById('heroShare').addEventListener('click', function(){
         const shareData = { title: ev.nombre, text: ev.description || '', url: window.location.href };
         if(navigator.share){ navigator.share(shareData).catch(()=> showToast('No se pudo compartir')); }
         else { navigator.clipboard?.writeText(window.location.href).then(()=> showToast('Enlace copiado al portapapeles')); }
+      });
+
+      // calendar button: open Google Calendar create event page with prefilled info
+      document.getElementById('heroCalendar').addEventListener('click', function(){
+        const title = encodeURIComponent(ev.nombre || 'Evento');
+        const details = encodeURIComponent(ev.description || '');
+        const location = encodeURIComponent(ev.place || '');
+        const url = 'https://www.google.com/calendar/render?action=TEMPLATE&text='+title+'&details='+details+'%0A%0A'+encodeURIComponent(window.location.href)+'&location='+location;
+        window.open(url, '_blank');
+      });
+
+      // Buy as gift: open purchase modal and prefill buyer as 'Regalo' and show recipient field
+      document.getElementById('heroGift').addEventListener('click', function(){
+        window.openPurchaseModal(ev.nombre);
+        // prefill buyer field to indicate a gift and show recipient
+        setTimeout(()=>{
+          const buyerEl = document.getElementById('purchaseBuyer');
+          const qtyEl = document.getElementById('purchaseQty');
+          const labelRecipient = document.getElementById('labelRecipient');
+          const recipientInput = document.getElementById('purchaseRecipient');
+          if(qtyEl) qtyEl.value = '1';
+          if(buyerEl) buyerEl.value = 'Regalo';
+          if(labelRecipient) labelRecipient.style.display = '';
+          if(recipientInput) { recipientInput.value = ''; recipientInput.focus(); }
+        }, 80);
       });
 
       // related
@@ -109,7 +227,12 @@
         const h4 = document.createElement('h4'); h4.textContent = r.nombre;
         const p = document.createElement('p'); p.textContent = r.date || '';
         const link = document.createElement('a'); link.href = './event.html?slug=' + encodeURIComponent(r.slug || ''); link.appendChild(im);
+        // price and buy button
+        const price = document.createElement('div'); price.style.marginTop = '.5rem'; price.style.fontWeight = '600'; price.textContent = window.formatPrice ? window.formatPrice(r.price || 0) : (' $' + (r.price || 0).toLocaleString());
+        const buyBtn = document.createElement('button'); buyBtn.className = 'buy-button'; buyBtn.textContent = 'Comprar'; buyBtn.style.marginLeft = '.6rem'; buyBtn.setAttribute('data-event', r.nombre || '');
         body.appendChild(h4); body.appendChild(p);
+        body.appendChild(price);
+        body.appendChild(buyBtn);
         rc.appendChild(link); rc.appendChild(body);
         related.appendChild(rc);
       });

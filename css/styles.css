@@ -1,362 +1,422 @@
 body {
   margin: 0;
-  font-family: sans-serif;
+  font-family: 'Roboto', sans-serif;
 }
 
-/* Theme variables */
-:root{
-  --bg: #ffffff;
-  --surface: #fff;
-  --muted: #555;
-  --primary: #7b4bb7;
-  --header-bg: #eee1f5;
-  --text: #111;
-}
-.theme-dark{
-  --bg: #0f1012;
-  --surface: #101214;
-  --muted: #bdbdbd;
-  --primary: #b589f7;
-  --header-bg: #2a2630;
-  --text: #eee;
-}
+  /* Theme variables */
+  :root{
+    --bg: #ffffff;
+    --surface: #fff;
+    --muted: #555;
+    --primary: #7b4bb7;
+    --header-bg: #eee1f5;
+    --text: #111;
+  }
+  .theme-dark{
+    --bg: #0f1012;
+    --surface: #101214;
+    --muted: #bdbdbd;
+    --primary: #b589f7;
+    --header-bg: #2a2630;
+    --text: #eee;
+  }
 
-body{ background: var(--bg); color: var(--text); }
-.modal-card, .settings-section, .event-card, .notification-card{ background: var(--surface); }
-.main-header{ background-color: var(--header-bg); }
-.toast{ background: rgba(0,0,0,.85); }
-.nav-item{ color: var(--text); }
+  body{ background: var(--bg); color: var(--text); }
+  .modal-card, .settings-section, .event-card, .notification-card{ background: var(--surface); }
+  .main-header{ background-color: var(--header-bg); }
+  .toast{ background: rgba(0,0,0,.85); }
+  .nav-item{ color: var(--text); }
 
-/* Ensure readable text and controls */
-.logo{ filter: none; }
-button, input, select, textarea{ color: var(--text); }
-label{ color: var(--muted); }
-.event-details, .auth-forms-row, .modal-card h2{ color: var(--text); }
-.nav-item .nav-text{ color: var(--text); }
-.modal-backdrop{ background: rgba(0,0,0,.45); }
-input, select{ background: var(--surface); border: 1px solid rgba(0,0,0,.06); }
-.theme-dark input, .theme-dark select{ border-color: rgba(255,255,255,0.06); }
-.primary{ background: var(--primary); color: #fff }
-.ghost{ color: var(--text); }
+  /* Ensure readable text and controls */
+  .logo{ filter: none; }
+  button, input, select, textarea{ color: var(--text); }
+  label{ color: var(--muted); }
+  .event-details, .auth-forms-row, .modal-card h2{ color: var(--text); }
+  .nav-item .nav-text{ color: var(--text); }
+  .modal-backdrop{ background: rgba(0,0,0,.45); }
+  input, select{ background: var(--surface); border: 1px solid rgba(0,0,0,.06); }
+  .theme-dark input, .theme-dark select{ border-color: rgba(255,255,255,0.06); }
+  .primary{ background: var(--primary); color: #fff }
+  .ghost{ color: var(--text); }
 
-/* Smooth transitions for theme changes */
-html, body, .modal-card, .settings-section, .event-card, .notification-card, .main-header, .bottom-nav {
-  transition: background-color 250ms ease, color 250ms ease, border-color 250ms ease;
-}
-.primary, .ghost, .buy-button { transition: background-color 180ms ease, color 180ms ease, transform 140ms ease; }
+  /* Smooth transitions for theme changes */
+  html, body, .modal-card, .settings-section, .event-card, .notification-card, .main-header, .bottom-nav {
+    transition: background-color 250ms ease, color 250ms ease, border-color 250ms ease;
+  }
+  .primary, .ghost, .buy-button { transition: background-color 180ms ease, color 180ms ease, transform 140ms ease; }
 
-.main-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: 60px; 
-  padding: 0 1rem; 
-  background-color: #eee1f5;
-}
-
-/* tiny adjustment for settings header back link */
-.main-header .logo-link{ color: #333; text-decoration: none; font-weight:600 }
-
-/* Settings page */
-.settings-section{ background: #fff; padding:1rem; border-radius:10px; margin-bottom:1rem; box-shadow: 0 4px 18px rgba(0,0,0,.06)}
-.setting-row{ display:flex; gap:.6rem; align-items:center; margin-top:.6rem }
-.settings-section h2{ margin:0 0 .3rem; color:#333 }
-.setting-row input[type="text"], .setting-row select{ padding:.6rem .75rem; border-radius:8px; border:1px solid #e6dbf5; background:#fbf8fc }
-.settings-section p{ color:#555; margin:0 }
-
-/* small utility */
-.logo-link{ display:inline-block; padding:.3rem .5rem; border-radius:8px }
-
-.main-header .logo {
-  max-height: 100%; 
-}
-
-.main-header button {
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-}
-
-
-.search-bar {
-  padding: 0.75rem 1rem;
-  background: #f1e6f9;
-}
-
-.search-bar input {
-  width: 93%;
-  padding: 0.6rem 0.8rem;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-}
-
-.events-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 1rem;
-  padding-bottom: 5rem;
-}
-
-.event-card {
-  display: flex;
-  background: #fff;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.event-image {
-  width: 200px;
-  height: 120px;
-  object-fit: cover;
-  /* keep image flush with card edge */
-}
-
-.event-details {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 0.5rem 1rem;
-  max-width: 120px;
-}
-
-/* Make links inside event titles and event images look like normal content (no blue/purple default)
-   but keep them accessible: visible outline on keyboard focus. */
-.event-title a, .event-card a {
-  color: inherit;
-  text-decoration: none;
-}
-.event-title a:focus, .event-card a:focus {
-  outline: 3px solid rgba(123,75,183,0.18);
-  outline-offset: 2px;
-  border-radius: 6px;
-}
-.event-card a:hover { text-decoration: underline; }
-
-
-.event-date {
-  margin: 0 0 0.5rem 0;
-  font-weight: 500;
-}
-
-.buy-button {
-  padding: 0.5rem;
-  background-color: #d4b0f4;
-  border: none;
-  border-radius: 4px;
-  color: #333;
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.bottom-nav {
-  position:fixed; bottom:0; left:0; width:100%;
-  background:#eee1f5; display:flex; justify-content:space-around;
-  padding: .45rem 0; box-shadow:0 -1px 3px rgba(0,0,0,.08);
-}
-
-.bottom-nav .nav-item {
-display:flex; flex-direction:column; align-items:center; gap:.15rem;
-  text-decoration:none; color:#333; font-size:.85rem;
-}
-
-.bottom-nav .nav-icon {
-  font-size: 1.4rem;
-}
-.nav-item .nav-icon{display:block}
-.nav-item.active{color:#7b4bb7; font-weight:600}
-.tabs {
-  display: flex;
-  justify-content: space-around;
-  background: #eee1f5;
-  border-bottom: 1px solid #ccc;
-}
-
-.tab-button {
-  flex: 1;
-  padding: 0.75rem;
-  text-align: center;
-  background: none;
-  border: none;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.tab-button.active {
-  border-bottom: 3px solid #7b4bb7;
-  color: #7b4bb7;
-  font-weight: 600;
-}
-
-.tab-section {
-  display: none;
-  padding: 1rem;
-  padding-bottom: 4rem;
-}
-
-.tab-section.active {
-  display: block;
-}
-.notification-card {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  padding: 1rem;
-  margin-bottom: 1rem;
-}
-
-.notification-card h3 {
-  margin: 0 0 0.3rem 0;
-  font-size: 1rem;
-  color: #333;
-}
+  .main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 60px;
+    padding: 0 1rem;
+    background-color: #eee1f5;
+  }
   
-.notification-card p {
-  margin: 0 0 0.5rem 0;
-  font-size: 0.9rem;
-  color: #555;
-}
+  .header-buttons {
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+  }
+
+  .main-header button {
+    font-size: 1rem; /* Botones más pequeños */
+    padding: 0.4rem;
+    height: 35px;
+    width: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+  }
+
+  .main-header button:hover {
+    background-color: rgba(0,0,0,0.05);
+  }
+
+  /* tiny adjustment for settings header back link */
+  .main-header .logo-link{ color: #333; text-decoration: none; font-weight:600 }
+
+  /* Settings page */
+  .settings-section{ background: #fff; padding:1rem; border-radius:10px; margin-bottom:1rem; box-shadow: 0 4px 18px rgba(0,0,0,.06)}
+  .setting-row{ display:flex; gap:.6rem; align-items:center; margin-top:.6rem }
+  .settings-section h2{ margin:0 0 .3rem; color:#333 }
+  .setting-row input[type="text"], .setting-row select{ padding:.6rem .75rem; border-radius:8px; border:1px solid #e6dbf5; background:#fbf8fc }
+  .settings-section p{ color:#555; margin:0 }
+
+  /* small utility */
+  .logo-link{ display:inline-block; padding:.3rem .5rem; border-radius:8px }
+
+  .main-header .logo {
+    height: 55px; /* Altura base */
+    width: auto;
+    max-width: none;
+    transform: scale(1.8); /* Escala aumentada */
+    transform-origin: left center;
+    margin-right: auto; /* Empuja los botones a la derecha */
+  }
+
+  .main-header button {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+  }
+
+
+  .search-bar {
+    padding: 0.75rem 1rem;
+    background: #f1e6f9;
+  }
+
+  .search-bar input {
+    width: 93%;
+    padding: 0.6rem 0.8rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  }
+
+  .events-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    padding-bottom: 5rem;
+  }
+
+  .event-card {
+    display: flex;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+
+  .event-image {
+    width: 200px;
+    height: 120px;
+    object-fit: cover;
+    /* keep image flush with card edge */
+  }
+
+  .event-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+  }
+
+  /* Make links inside event titles and event images look like normal content (no blue/purple default)
+     but keep them accessible: visible outline on keyboard focus. */
+  .event-title a, .event-card a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .event-title a:focus, .event-card a:focus {
+    outline: 3px solid rgba(123,75,183,0.18);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  .event-card a:hover { text-decoration: underline; }
+
+
+  .event-date {
+    margin: 0 0 0.5rem 0;
+    font-weight: 500;
+  }
+
+  .buy-button {
+    padding: 0.5rem;
+    background-color: #d4b0f4;
+    border: none;
+    border-radius: 4px;
+    color: #333;
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  .bottom-nav {
+    position:fixed; bottom:0; left:0; width:100%;
+    background:#eee1f5; display:flex; justify-content:space-around;
+    padding: .45rem 0; box-shadow:0 -1px 3px rgba(0,0,0,.08);
+  }
+
+  .bottom-nav .nav-item {
+  display:flex; flex-direction:column; align-items:center; gap:.15rem;
+    text-decoration:none; color:#333; font-size:.85rem;
+  }
+
+  .bottom-nav .nav-icon {
+    font-size: 1.4rem;
+  }
+  .nav-item .nav-icon{display:block}
+  .nav-item.active{color:#7b4bb7; font-weight:600}
+  .tabs {
+    display: flex;
+    justify-content: space-around;
+    background: #eee1f5;
+    border-bottom: 1px solid #ccc;
+  }
+
+  .tab-button {
+    flex: 1;
+    padding: 0.75rem;
+    text-align: center;
+    background: none;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .tab-button.active {
+    border-bottom: 3px solid #7b4bb7;
+    color: #7b4bb7;
+    font-weight: 600;
+  }
+
+  .tab-section {
+    display: none;
+    padding: 1rem;
+    padding-bottom: 4rem;
+  }
+
+  .tab-section.active {
+    display: block;
+  }
+  .notification-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .notification-card h3 {
+    margin: 0 0 0.3rem 0;
+    font-size: 1rem;
+    color: #333;
+  }
+  
+  .notification-card p {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+    color: #555;
+  }
     
-.notification-date {
-  font-size: 0.75rem;
-  color: #888;
-}
+  .notification-date {
+    font-size: 0.75rem;
+    color: #888;
+  }
 
-main {
-  padding-bottom: 4rem;
-}
+  main {
+    padding-bottom: 4rem;
+  }
 
-/* Event detail styles */
-.event-hero {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-  max-width: 1000px;
-  margin: 1rem auto;
-  padding: 1rem;
-}
-.event-hero .hero-image { width: 100%; height: 320px; object-fit: cover; border-radius: 12px; }
-.event-meta { display:flex; gap:1rem; align-items:center; margin-top: .6rem; color: var(--muted); }
-.event-title-big { margin: .4rem 0; font-size: 1.6rem; color: var(--text); }
-.event-actions { display:flex; gap:.6rem; margin-top:.8rem; }
-.btn-buy { background: var(--primary); color: #fff; border: none; padding:.65rem .9rem; border-radius: 8px; cursor:pointer; font-weight:700 }
-.btn-share { background: transparent; border: 1px solid rgba(0,0,0,0.06); padding:.6rem .9rem; border-radius:8px; cursor:pointer }
-.event-description { margin-top: .8rem; line-height:1.45; color: var(--muted); }
-.related-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: .8rem; margin-top:1rem }
-.related-card { background: var(--surface); border-radius: 8px; overflow: hidden; box-shadow: 0 6px 18px rgba(0,0,0,.06); }
-.related-card img{ width:100%; height:120px; object-fit:cover }
-.related-card .rc-body{ padding:.6rem }
-.related-card h4{ margin:0 0 .4rem 0; font-size:1rem }
-.related-card p{ margin:0; font-size:.85rem; color:var(--muted) }
+  /* Event detail styles */
+  .event-hero {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    max-width: 1000px;
+    margin: 1rem auto;
+    padding: 1rem;
+  }
+  .event-hero .hero-image { width: 100%; height: 320px; object-fit: cover; border-radius: 12px; }
+  .event-meta { display:flex; gap:1rem; align-items:center; margin-top: .6rem; color: var(--muted); }
+  .event-title-big { margin: .4rem 0; font-size: 1.6rem; color: var(--text); }
+  .event-actions { display:flex; gap:.6rem; margin-top:.8rem; }
+  .btn-buy { background: var(--primary); color: #fff; border: none; padding:.65rem .9rem; border-radius: 8px; cursor:pointer; font-weight:700 }
+  .btn-share { background: transparent; border: 1px solid rgba(0,0,0,0.06); padding:.6rem .9rem; border-radius:8px; cursor:pointer }
+  .event-description { margin-top: .8rem; line-height:1.45; color: var(--muted); }
+  .related-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: .8rem; margin-top:1rem }
+  .related-card { background: var(--surface); border-radius: 8px; overflow: hidden; box-shadow: 0 6px 18px rgba(0,0,0,.06); }
+  .related-card img{ width:100%; height:120px; object-fit:cover }
+  .related-card .rc-body{ padding:.6rem }
+  .related-card h4{ margin:0 0 .4rem 0; font-size:1rem }
+  .related-card p{ margin:0; font-size:.85rem; color:var(--muted) }
 
-/* --- PROFILE DROPDOWN --- */
-.profile-menu{
-  position: absolute;
-  top: 60px; /* coincide con la altura del header */
-  right: 12px;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 6px 24px rgba(0,0,0,.12);
-  padding: .25rem;
-  display: flex;
-  flex-direction: column;
-  z-index: 20;
-}
-.profile-menu button{
-  background: none;
-  border: 0;
-  text-align: left;
-  padding: .6rem .9rem;
-  font-size: .95rem;
-  border-radius: 8px;
-  cursor: pointer;
-}
-.profile-menu button:hover{ background:#f4f4f6; }
+  /* Card hover improvements for event cards and related cards */
+  .event-card, .related-card { transition: transform 160ms ease, box-shadow 160ms ease; }
+  .event-card:hover, .related-card:hover { transform: translateY(-6px); box-shadow: 0 12px 30px rgba(0,0,0,0.12); }
+  .event-card .event-details h3, .related-card h4 { margin-bottom: .3rem; }
+  .event-card .price-badge { margin-left: auto; font-weight:700; color: var(--primary); }
+  .event-card .meta-row { display:flex; gap:.6rem; align-items:center; color:var(--muted); }
 
-/* --- MODAL --- */
-.modal[hidden] { display: none; }
-.modal{
-  position: fixed; inset: 0; z-index: 9999; /* muy por encima del mapa */
-  display: grid; place-items: center;
-  -webkit-overflow-scrolling: touch;
-}
-.modal-backdrop{
-  position: absolute; inset: 0; background: rgba(0,0,0,.45);
-  z-index: 9998; /* debajo de la tarjeta pero sobre el mapa */
-  pointer-events: auto;
-}
-.modal-card{
-  position: relative; z-index: 10000; /* encima del backdrop */
-  width: 100%; max-width: 420px;
-  background: #fff;
-  border-radius: 18px;
-  padding: 1.2rem;
-  box-shadow: 0 10px 30px rgba(0,0,0,.22);
-}
-.modal-card .modal-close{ position: absolute; right: 12px; top: 12px; background: transparent; border: 0; font-size: 1.05rem; cursor: pointer; }
-.modal-card .modal-close[aria-label]{ padding: .25rem .5rem; }
-.modal-card { max-height: 86vh; overflow: auto; }
-.modal-card h2{ margin: 0 0 .8rem; }
-.modal-card form{ display: grid; gap: .75rem; }
-.modal-card input{
-  width: 100%;
-  padding: .65rem .8rem;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-  font-size: 1rem;
-}
+  /* Slightly enlarge image on hover for a subtle effect */
+  .event-card:hover .event-image, .related-card:hover img { transform: scale(1.03); transition: transform 220ms ease; }
 
-/* --- AUTH TABS (side-by-side on larger screens) --- */
-.auth-tabs{ display:flex; gap:.5rem; margin-bottom:.8rem; }
-.auth-tabs .tab{ flex:1; padding:.55rem .6rem; border-radius:10px; background:#f5f0fa; border:1px solid transparent; cursor:pointer; }
-.auth-tabs .tab.active{ background:#7b4bb7; color:#fff; border-color: rgba(0,0,0,.05); }
-.auth-form{ margin:0; }
 
-/* show forms side-by-side on wide screens */
-.auth-forms-row{ display:block; gap:0; }
-/* Side-by-side by default, stack on small screens */
-.auth-forms-row{ display:flex; gap:1rem; }
-@media (max-width:520px){
-  .modal-card{ width: calc(100vw - 2rem); border-radius: 14px; }
-  .auth-forms-row{ display:block; }
-}
-.auth-forms-row form{ flex:1; min-width: 0; }
+  /* --- PROFILE DROPDOWN --- */
+  .profile-menu{
+    position: absolute;
+    top: 60px; /* coincide con la altura del header */
+    right: 12px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 6px 24px rgba(0,0,0,.12);
+    padding: .25rem;
+    display: flex;
+    flex-direction: column;
+    z-index: 20;
+  }
+  .profile-menu button{
+    background: none;
+    border: 0;
+    text-align: left;
+    padding: .6rem .9rem;
+    font-size: .95rem;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .profile-menu button:hover{ background:#f4f4f6; }
 
-/* visually de-emphasize inactive form */
-.auth-forms-row form{ opacity: .95; transform-origin: left top; }
-.auth-forms-row form.inactive{ opacity: .55; }
+  /* --- MODAL --- */
+  .modal[hidden] { display: none; }
+  .modal{
+    position: fixed; inset: 0; z-index: 9999; /* muy por encima del mapa */
+    display: grid; place-items: center;
+    -webkit-overflow-scrolling: touch;
+  }
+  .modal-backdrop{
+    position: absolute; inset: 0; background: rgba(0,0,0,.45);
+    z-index: 9998; /* debajo de la tarjeta pero sobre el mapa */
+    pointer-events: auto;
+  }
+  .modal-card{
+    position: relative; z-index: 10000; /* encima del backdrop */
+    width: 100%; max-width: 420px;
+    background: #fff;
+    border-radius: 18px;
+    padding: 1.2rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,.22);
+  }
+  .modal-card .modal-close{ position: absolute; right: 12px; top: 12px; background: transparent; border: 0; font-size: 1.05rem; cursor: pointer; }
+  .modal-card .modal-close[aria-label]{ padding: .25rem .5rem; }
+  .modal-card { max-height: 86vh; overflow: auto; }
+  .modal-card h2{ margin: 0 0 .8rem; }
+  .modal-card form{ display: grid; gap: .75rem; }
+  .modal-card input{
+    width: 100%;
+    padding: .65rem .8rem;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    font-size: 1rem;
+  }
 
-/* add small divider on wide screens */
-.auth-forms-row::before{ content:''; display:block; }
+  /* --- AUTH TABS (side-by-side on larger screens) --- */
+  .auth-tabs{ display:flex; gap:.5rem; margin-bottom:.8rem; }
+  .auth-tabs .tab{ flex:1; padding:.55rem .6rem; border-radius:10px; background:#f5f0fa; border:1px solid transparent; cursor:pointer; }
+  .auth-tabs .tab.active{ background:#7b4bb7; color:#fff; border-color: rgba(0,0,0,.05); }
+  .auth-form{ margin:0; }
 
-/* hide form when hidden attribute is set (don't take space) */
-.auth-forms-row form[hidden]{ display: none !important; }
+  /* show forms side-by-side on wide screens */
+  .auth-forms-row{ display:block; gap:0; }
+  /* Side-by-side by default, stack on small screens */
+  .auth-forms-row{ display:flex; gap:1rem; }
+  @media (max-width:520px){
+    .modal-card{ width: calc(100vw - 2rem); border-radius: 14px; }
+    .auth-forms-row{ display:block; }
+  }
 
-/* auth message */
-.auth-message{ background:#fff4e5; border:1px solid #ffd8a8; padding:.6rem .8rem; border-radius:8px; margin-bottom:.6rem; color:#663c00; }
+  /* Desktop improvements: larger logo/icon and two-column agenda */
+  @media (min-width: 900px) {
+    /* keep header sizing unchanged; only adjust agenda layout for desktop */
 
-/* Toast */
-.toast{ position: fixed; right: 1rem; bottom: 4.5rem; background: #222; color: #fff; padding: .6rem .9rem; border-radius: 8px; box-shadow: 0 8px 20px rgba(0,0,0,.25); z-index:11000; }
-.toast[hidden]{ display:none }
+    /* make bottom nav icons a bit larger on wider screens (if visible) */
+    .nav-item .nav-icon { width: 28px; height: 28px; }
 
-/* prevent body scroll when modal open */
-body.modal-open{ overflow: hidden; }
-.modal-card .primary{
-  background: #7b4bb7; color: #fff; border: 0;
-  padding: .7rem 1rem; border-radius: 10px; cursor: pointer;
-  font-weight: 600;
-}
-.modal-card .ghost{
-  background: transparent; border: 0; color: #555;
-  padding: .6rem .8rem; border-radius: 10px; cursor: pointer;
-}
+    /* show events in a two-column grid on larger screens */
+    .events-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; padding: 1.25rem; }
 
-/* Asegura jerarquía del header si hay mapa full */
-.main-header { position: relative; z-index: 10; }
+    /* slightly larger images for desktop cards */
+    .event-card { align-items: stretch; }
+    .event-image { width: 220px; height: 140px; }
+
+    /* give event details more room (remove truncation) */
+    .event-details { padding: 0.8rem 1rem; }
+  }
+  .auth-forms-row form{ flex:1; min-width: 0; }
+
+  /* visually de-emphasize inactive form */
+  .auth-forms-row form{ opacity: .95; transform-origin: left top; }
+  .auth-forms-row form.inactive{ opacity: .55; }
+
+  /* add small divider on wide screens */
+  .auth-forms-row::before{ content:''; display:block; }
+
+  /* hide form when hidden attribute is set (don't take space) */
+  .auth-forms-row form[hidden]{ display: none !important; }
+
+  /* auth message */
+  .auth-message{ background:#fff4e5; border:1px solid #ffd8a8; padding:.6rem .8rem; border-radius:8px; margin-bottom:.6rem; color:#663c00; }
+
+  /* Toast */
+  .toast{ position: fixed; right: 1rem; bottom: 4.5rem; background: #222; color: #fff; padding: .6rem .9rem; border-radius: 8px; box-shadow: 0 8px 20px rgba(0,0,0,.25); z-index:11000; }
+  .toast[hidden]{ display:none }
+
+  /* Undo toast used in notificaciones (small bar with action) */
+  .undo-toast{ position: fixed; right: 1rem; bottom: 6.6rem; background: #fff; color: #111; padding: .5rem .75rem; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,.12); display:flex; gap:.6rem; align-items:center; z-index:11000; }
+  .undo-toast[hidden]{ display:none }
+  .undo-toast .ghost{ background: transparent; border: none; color: #7b4bb7; cursor: pointer; font-weight:600 }
+
+  /* prevent body scroll when modal open */
+  body.modal-open{ overflow: hidden; }
+  .modal-card .primary{
+    background: #7b4bb7; color: #fff; border: 0;
+    padding: .7rem 1rem; border-radius: 10px; cursor: pointer;
+    font-weight: 600;
+  }
+  .modal-card .ghost{
+    background: transparent; border: 0; color: #555;
+    padding: .6rem .8rem; border-radius: 10px; cursor: pointer;
+  }
+
+  /* Asegura jerarquía del header si hay mapa full */
+  .main-header { position: relative; z-index: 10; }
 
 
