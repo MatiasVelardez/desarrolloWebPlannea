@@ -122,7 +122,7 @@
       document.getElementById('authContent').hidden = true;
       document.getElementById('profileEmail').textContent = state.user.email;
     }else{
-      btnUser.setAttribute('aria-label', 'Login');
+      btnUser.setAttribute('aria-label', 'Cuenta');
       btnUser.textContent = '👤';
       document.getElementById('userContent').hidden = true;
       document.getElementById('authContent').hidden = false;
@@ -278,11 +278,12 @@
   // Tema persistente: aplicar al cargar
   (function applySavedTheme(){
     try{
-      const t = localStorage.getItem('plannea_theme') || 'system';
+      // Force light theme by default
+      const t = localStorage.getItem('plannea_theme') || 'light';
       if(t === 'dark') document.documentElement.classList.add('theme-dark');
       else if(t === 'light') document.documentElement.classList.remove('theme-dark');
       else {
-        // system preference
+        // system preference (fallback)
         const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         if(prefersDark) document.documentElement.classList.add('theme-dark');
         else document.documentElement.classList.remove('theme-dark');
@@ -334,6 +335,14 @@
     if(labelRecipient) labelRecipient.style.display = 'none';
     if(recipientInput) recipientInput.value = '';
     modal.hidden = false; document.body.classList.add('modal-open');
+  }
+
+  // Unified popup action: open purchase modal only (do NOT open detail page)
+  window.popupVerDetalles = function(eventName, detailUrl){
+    try{
+      if(typeof window.openPurchaseModal === 'function') window.openPurchaseModal(eventName);
+    }catch(e){ console.error('openPurchaseModal error', e); }
+    // NOTE: Removed opening the event detail in a new tab per user request.
   }
 
   // Event state helpers: merge initial events with any persisted availability in localStorage
